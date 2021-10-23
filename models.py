@@ -1,4 +1,5 @@
 """Models for Blogly."""
+import datetime
 from enum import unique
 from flask_sqlalchemy import SQLAlchemy
 
@@ -22,12 +23,33 @@ class User(db.Model):
         u = self
         return f"<User id={u.id} first_name={u.first_name} last_name={u.last_name} img_url={u.img_url}>"
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.Text, nullable=False)
     last_name = db.Column(db.Text, nullable=False)
     img_url = db.Column(db.Text, nullable=False, default=DEFAULT_IMG_URL)
+
+    posts = db.relationship("Post", backref="user", cascade="all, delete-orphan")
 
     def show_user(self):
         """shows full name of user"""
 
         return f"{self.first_name} {self.last_name}"
+
+
+class Post(db.Model):
+
+    __tablename__ = "posts"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    title = db.Column(db.Text, nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+
+    def __repr__(self):
+        return f"<Post {self.title} {self.content} {self.created_at}>"
+
+    def readable_date(self):
+        """Returns reader friendly date"""
+
+        return self.created_at.strftime("%a %b %-d %Y, %-I:%M %p")
